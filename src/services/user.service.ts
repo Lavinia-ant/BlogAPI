@@ -8,8 +8,8 @@ type CreateUserProps = {
 }
 
 type VerifyUserProps = {
-    email: string;
-    password: string;
+    email: string
+    password: string
 }
 
 export const createUser = async ({ name, email, password }: CreateUserProps) => {
@@ -32,14 +32,15 @@ export const createUser = async ({ name, email, password }: CreateUserProps) => 
     })
 }
 
-export const verifyUser = async ({ email, password }: VerifyUserProps) => {
+export const verifyUser = async ({ email, password }: VerifyUserProps) => 
+{
     email = email.toLowerCase()
 
     const user = await prisma.user.findFirst({
         where: { email }
     })
     if (!user) return false
-    const isMatch = await bcrypt.compare(password, user.password)
+    const isMatch = await bcrypt.compareSync(password, user.password)
     if (!isMatch) return false
 
     return user
