@@ -2,7 +2,8 @@ import { RequestHandler, Response } from "express";
 import { ExtendedRequest } from '../types/extended-request';
 import z from 'zod';
 import { getUserById } from '../services/user.service';
-import { handleCover } from "../services/post.service";
+import { handleCover, createPostSlug, createPost } from "../services/post.service";
+import { coverToUrl } from "../utils/cover-to-url"
 
 export const addPost = async (req: ExtendedRequest, res: Response) => {
     if (!req.user) return 
@@ -25,6 +26,31 @@ export const addPost = async (req: ExtendedRequest, res: Response) => {
     if (!coverName) {
         return res.status(400).json({ error: 'Invalid cover image' })
     }
+
+    const slug = await createPostSlug(data.data.title)
+
+	const newPost = await createPost({
+		authorId: req.user.id,
+		slug,
+		title: data.data.title,
+		tags: data.data.tags,
+		body: data.data.body,
+		cover: coverName
+	})
+
+	const author = await getUserById(newPost.authorId)
+
+	res.status(201).json({
+		post: {
+			id: newPost.id,
+			slug: newPost.slug,
+			title: newPost.title,
+			createdAt: newPost.createdAt,
+			cover: coverToUrl(newPost.cover),
+			tags: newPost.tags,
+			authorName: author?.name || 'Unknown'
+		}
+	})
 }
 
 export const editPost: RequestHandler = async (req, res) => {
